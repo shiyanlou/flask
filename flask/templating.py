@@ -47,6 +47,10 @@ class _DispatchingJinjaLoader(BaseLoader):
             except TemplateNotFound:
                 pass
 
+        # in 0.5.*, the loader of the application can be None
+        if self.app.jinja_loader is None:
+            raise TemplateNotFound(template)
+
         # fall back to application loader if module failed
         return self.app.jinja_loader.get_source(environment, template)
 
