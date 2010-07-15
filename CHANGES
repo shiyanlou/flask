@@ -3,6 +3,15 @@ Flask Changelog
 
 Here you can see the full list of changes between each Flask release.
 
+Version 0.5.2
+-------------
+
+Bugfix Release, released on July 15th 2010
+
+- fixed another issue with loading templates from directories when
+  modules were used.
+
+
 Version 0.5.1
 -------------
 
