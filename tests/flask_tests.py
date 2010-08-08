@@ -828,6 +828,15 @@ class ModuleTestCase(unittest.TestCase):
             else:
                 assert 0, 'expected exception'
 
+    def test_static_path_backwards_compat(self):
+        with catch_warnings() as captured:
+            from modulecompat import app
+            rv = app.test_client().get('/test/static/hello.txt')
+            assert rv.data.strip() == 'Hello World!'
+
+            # the warning for missing static_path
+            assert len(captured) == 1
+
 
 class SendfileTestCase(unittest.TestCase):
 

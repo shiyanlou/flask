@@ -23,9 +23,8 @@ def _register_module(module):
         state.app.modules[module.name] = module
         path = module.static_path
         # XXX: backwards compatibility.  This will go away in 1.0
-        if path is None and module._backwards_compat_static_path:
-            path = module.static_path
-            if path == app.static_path:
+        if module._backwards_compat_static_path:
+            if path == state.app.static_path:
                 return
             from warnings import warn
             warn(DeprecationWarning('With Flask 0.7 the static folder '
@@ -35,7 +34,7 @@ def _register_module(module):
                 'Pass ``static_path=\'static\'`` to the Module '
                 'constructor if you want to use static folders.\n'
                 'This backwards compatibility support will go away in '
-                'Flask 1.0'), stacklevel=3)
+                'Flask 1.0'), stacklevel=2)
         if path is None:
             return
         path = '/' + os.path.basename(path)
