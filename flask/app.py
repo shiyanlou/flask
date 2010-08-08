@@ -11,6 +11,7 @@
 
 from __future__ import with_statement
 
+import os
 from threading import Lock
 from datetime import timedelta, datetime
 from itertools import chain
@@ -90,9 +91,9 @@ class Flask(_PackageBoundObject):
 
     :param import_name: the name of the application package
     :param static_path: can be used to specify a different path for the
-                        static files on the web.  Defaults to ``/static``.
-                        This does not affect the folder the files are served
-                        *from*.
+                        static folder.  Defaults to ``'static'``.  Setting
+                        this to `None` disables the default folder for
+                        static files.
     """
 
     #: The class that is used for request objects.  See :class:`~flask.Request`
@@ -102,14 +103,6 @@ class Flask(_PackageBoundObject):
     #: The class that is used for response objects.  See
     #: :class:`~flask.Response` for more information.
     response_class = Response
-
-    #: Path for the static files.  If you don't want to use static files
-    #: you can set this value to `None` in which case no URL rule is added
-    #: and the development server will no longer serve any static files.
-    #:
-    #: This is the default used for application and modules unless a
-    #: different value is passed to the constructor.
-    static_path = '/static'
 
     #: The debug flag.  Set this to `True` to enable debugging of the
     #: application.  In debug mode the debugger will kick in when an unhandled
@@ -198,10 +191,8 @@ class Flask(_PackageBoundObject):
         'MAX_CONTENT_LENGTH':                   None
     })
 
-    def __init__(self, import_name, static_path=None):
-        _PackageBoundObject.__init__(self, import_name)
-        if static_path is not None:
-            self.static_path = static_path
+    def __init__(self, import_name, static_path='static'):
+        _PackageBoundObject.__init__(self, import_name, static_path)
 
         #: The configuration dictionary as :class:`Config`.  This behaves
         #: exactly like a regular dictionary but supports additional methods
@@ -273,14 +264,13 @@ class Flask(_PackageBoundObject):
         #:    app.url_map.converters['list'] = ListConverter
         self.url_map = Map()
 
-        # register the static folder for the application.  Do that even
-        # if the folder does not exist.  First of all it might be created
-        # while the server is running (usually happens during development)
-        # but also because google appengine stores static files somewhere
-        # else when mapped with the .yml file.
-        self.add_url_rule(self.static_path + '/<path:filename>',
-                          endpoint='static',
-                          view_func=self.send_static_file)
+        # register the static folder for the application if necessary.
+        # The basename of the static path is the URL prefix.
+        if self.static_path is not None:
+            self.add_url_rule('/%s/<path:filename>' %
+                              os.path.basename(self.static_path),
+                              endpoint='static',
+                              view_func=self.send_static_file)
 
         #: The Jinja2 environment.  It is created from the
         #: :attr:`jinja_options`.

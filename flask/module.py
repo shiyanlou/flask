@@ -9,10 +9,11 @@
     :license: BSD, see LICENSE for more details.
 """
 
+import os
 from .helpers import _PackageBoundObject, _endpoint_from_view_func
 
 
-def _register_module(module, static_path):
+def _register_module(module):
     """Internal helper function that returns a function for recording
     that registers the `send_static_file` function for the module on
     the application if necessary.  It also registers the module on
@@ -20,13 +21,24 @@ def _register_module(module, static_path):
     """
     def _register(state):
         state.app.modules[module.name] = module
-        # do not register the rule if the static folder of the
-        # module is the same as the one from the application.
-        if state.app.root_path == module.root_path:
-            return
-        path = static_path
+        path = module.static_path
+        # XXX: backwards compatibility.  This will go away in 1.0
+        if path is None and module._backwards_compat_static_path:
+            path = module.static_path
+            if path == app.static_path:
+                return
+            from warnings import warn
+            warn(DeprecationWarning('With Flask 0.7 the static folder '
+                'for modules became explicit due to problems with the '
+                'existing system on Google Appengine and multiple '
+                'modules with the same prefix.\n'
+                'Pass ``static_path=\'static\'`` to the Module '
+                'constructor if you want to use static folders.\n'
+                'This backwards compatibility support will go away in '
+                'Flask 1.0'), stacklevel=3)
         if path is None:
-            path = state.app.static_path
+            return
+        path = '/' + os.path.basename(path)
         if state.url_prefix:
             path = state.url_prefix + path
         state.app.add_url_rule(path + '/<path:filename>',
@@ -112,6 +124,7 @@ class Module(_PackageBoundObject):
                         This does not affect the folder the files are served
                         *from*.
     """
+    _backwards_compat_static_path = False
 
     def __init__(self, import_name, name=None, url_prefix=None,
                  static_path=None, subdomain=None):
@@ -119,11 +132,19 @@ class Module(_PackageBoundObject):
             assert '.' in import_name, 'name required if package name ' \
                 'does not point to a submodule'
             name = import_name.rsplit('.', 1)[1]
-        _PackageBoundObject.__init__(self, import_name)
+        _PackageBoundObject.__init__(self, import_name, static_path)
         self.name = name
         self.url_prefix = url_prefix
         self.subdomain = subdomain
-        self._register_events = [_register_module(self, static_path)]
+        self._register_events = [_register_module(self)]
+
+        # XXX: backwards compatibility, see _register_module.  This
+        # will go away in 1.0
+        if self.static_path is None:
+            path = os.path.join(self.root_path, 'static')
+            if os.path.isdir(path):
+                self.static_path = path
+                self._backwards_compat_static_path = True
 
     def route(self, rule, **options):
         """Like :meth:`Flask.route` but for a module.  The endpoint for the

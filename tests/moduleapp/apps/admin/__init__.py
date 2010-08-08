@@ -1,7 +1,8 @@
+import os
 from flask import Module, render_template
 
 
-admin = Module(__name__, url_prefix='/admin')
+admin = Module(__name__, url_prefix='/admin', static_path='static')
 
 
 @admin.route('/')

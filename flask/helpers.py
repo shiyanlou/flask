@@ -429,7 +429,7 @@ def _get_package_path(name):
 
 class _PackageBoundObject(object):
 
-    def __init__(self, import_name):
+    def __init__(self, import_name, static_path=None):
         #: The name of the package or module.  Do not change this once
         #: it was set by the constructor.
         self.import_name = import_name
@@ -437,14 +437,30 @@ class _PackageBoundObject(object):
         #: Where is the app root located?
         self.root_path = _get_package_path(self.import_name)
 
+        if static_path is not None:
+            static_path = os.path.join(self.root_path, static_path)
+
+        #: the path to the static files or None if this object does
+        #: not export any static files under a standard name.
+        self.static_path = static_path
+
     @property
     def has_static_folder(self):
         """This is `True` if the package bound object's container has a
         folder named ``'static'``.
 
         .. versionadded:: 0.5
+
+        .. versionchanged:: 0.7
+           This propery got deprecated because it is unreliable under
+           certain hosting setups such as Google's Appengine.  This will
+           be gone in Flask 1.0
         """
-        return os.path.isdir(os.path.join(self.root_path, 'static'))
+        from warnings import warn
+        warn(DeprecationWarning('has_static_folder is deprecated.  Pass '
+            'explicitly a static path now if you want a default static '
+            'folder for an application or module.'), stacklevel=2)
+        return os.path.isdir(self.static_path)
 
     @cached_property
     def jinja_loader(self):
@@ -460,8 +476,7 @@ class _PackageBoundObject(object):
 
         .. versionadded:: 0.5
         """
-        return send_from_directory(os.path.join(self.root_path, 'static'),
-                                   filename)
+        return send_from_directory(self.static_path, filename)
 
     def open_resource(self, resource):
         """Opens a resource from the application's resource folder.  To see
@@ -481,6 +496,10 @@ class _PackageBoundObject(object):
             with app.open_resource('schema.sql') as f:
                 contents = f.read()
                 do_something_with(contents)
+
+        Note that on Google Appengine static files are deployed to an entirely
+        different server with a proper app.yml and because of that, this method
+        is unable to open static files on such an environment.
 
         :param resource: the name of the resource.  To access resources within
                          subfolders use forward slashes as separator.
