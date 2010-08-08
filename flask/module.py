@@ -29,7 +29,7 @@ def _register_module(module):
             from warnings import warn
             warn(DeprecationWarning('With Flask 0.7 the static folder '
                 'for modules became explicit due to problems with the '
-                'existing system on Google Appengine and multiple '
+                'existing system on Google App Engine and multiple '
                 'modules with the same prefix.\n'
                 'Pass ``static_path=\'static\'`` to the Module '
                 'constructor if you want to use static folders.\n'
@@ -118,10 +118,15 @@ class Module(_PackageBoundObject):
                        when registering the module with the application.
     :param subdomain: used to set the subdomain setting for URL rules that
                       do not have a subdomain setting set.
-    :param static_path: can be used to specify a different path for the
-                        static files on the web.  Defaults to ``/static``.
-                        This does not affect the folder the files are served
-                        *from*.
+    :param static_path: when specified this points to a folder (relative to
+                        the module's root path) that is exposed on the web.
+                        By default nothing is exposed although for backwards
+                        compatibility with older versions of Flask it will
+                        check if a folder named "static" exists and
+                        automatically set the `static_path` to ``'static'``
+                        if it finds a folder with that name.  This
+                        functionality however is deprecated and will
+                        vanish in Flask 1.0.
     """
     _backwards_compat_static_path = False
 

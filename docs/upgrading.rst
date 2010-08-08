@@ -44,6 +44,24 @@ New code::
 
     return send_file(my_file_object, add_etags=False)
 
+The other big change was the switch of implicit static exports to explicit
+static exports.  Previously the presence of a folder named ``'static'``
+in the root path of an application or module created a URL rule and
+endpoint that serves static files.  The problem with this is that when
+multiple modules are in the same package all of them would share the same
+static folder.  Furthermore on Google App Engine static files are deployed
+to a separate server which broke the autodetection.
+
+With the new system you have to explicitly pass the name of the static
+folder to the module::
+
+    mod = Module(__name__, static_path='static')
+
+This also allows you to change the name of the static folder used.
+
+The deprecated behaviour will stay around until Flask 1.0 but issue
+deprecation warnings.
+
 Version 0.6
 -----------
 

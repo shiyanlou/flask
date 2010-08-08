@@ -231,18 +231,31 @@ static files and templates.  Imagine you have an application like this::
                     show_item.html
                     ...
 
-The static folders automatically become exposed as URLs.  For example if
-the `admin` module is exported with an URL prefix of ``/admin`` you can
-access the style css from its static folder by going to
-``/admin/static/style.css``.  The URL endpoint for the static files of the
-admin would be ``'admin.static'``, similar to how you refer to the regular
-static folder of the whole application as ``'static'``.
+The static folders become exposed as URLs when the `static_path`
+parameter is passed to the Module::
 
-If you want to refer to the templates you just have to prefix it with the
-name of the module.  So for the admin it would be
-``render_template('admin/list_items.html')`` and so on.  It is not
-possible to refer to templates without the prefixed module name.  This is
-explicit unlike URL rules.
+    mod = Module(__name__, static_path='static')
+
+The endpoint of that export will always be ``'modulename.static'``, even
+if the name of the folder is something else.  For example if the `admin`
+module is exported with an URL prefix of ``/admin`` you can access the
+style css from its static folder by going to ``/admin/static/style.css``.
+
+Templates are automatically looked up in a folder named ``templates`` when
+it's there.  It is not necessary (and currently not possible) to specify
+the name of that folder to the constructor.  If you want to refer to the
+templates you just have to prefix it with the name of the module.  So for
+the admin it would be ``render_template('admin/list_items.html')`` and so
+on.  It is not possible to refer to templates without the prefixed module
+name.  This is explicit unlike URL rules.
+
+.. versionchanged:: 0.7
+   In previous versions of Flask the lookup for the static files for
+   modules happened automatically when a folder named ``'static'`` was in
+   the directory of the module.  This caused various issues with multiple
+   modules in the same folder and especially on Google's App Engine, so
+   this was changed with 0.7.  The old behaviour will stick around until
+   Flask 1.0 but will issue deprecation warnings.
 
 .. admonition:: References to Static Folders
 

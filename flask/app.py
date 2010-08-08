@@ -93,7 +93,7 @@ class Flask(_PackageBoundObject):
     :param static_path: can be used to specify a different path for the
                         static folder.  Defaults to ``'static'``.  Setting
                         this to `None` disables the default folder for
-                        static files.
+                        static files on the application.
     """
 
     #: The class that is used for request objects.  See :class:`~flask.Request`
