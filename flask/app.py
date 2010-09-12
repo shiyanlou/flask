@@ -163,10 +163,30 @@ class Flask(_PackageBoundObject):
     use_x_sendfile = ConfigAttribute('USE_X_SENDFILE')
 
     #: The name of the logger to use.  By default the logger name is the
-    #: package name passed to the constructor.
+    #: package name passed to the constructor.  In case the logging system
+    #: is ``'logbook'``, this is used as the channel name for the log
+    #: records emitted by Flask itself but the actual :attr:`logger`
+    #: attribute is unavailable.
     #:
     #: .. versionadded:: 0.4
     logger_name = ConfigAttribute('LOGGER_NAME')
+
+    #: the name of the logging system that is configured by default.  The
+    #: default is ``'logging'`` but it can be set to ``'logbook'`` as well.
+    #: The default will change to ``'logbook'`` at one point and later the
+    #: ``'logging'`` support will eventually disappear together with this
+    #: setting.  Check the :ref:`log-transition` for more information.
+    #:
+    #: .. versionadded:: 0.7
+    logging_system = ConfigAttribute('LOGGING_SYSTEM')
+
+    #: the logbook setup that should be in use.  This is only used in case
+    #: the `LOGGING_SYSTEM` is ``'logbook'``.  It can point to any
+    #: :class:`logbook.Processor`, :class:`logbook.Handler` or
+    #: :class:`logbook.NestedSetup`.  In case it's `None`, the default
+    #: application wide setup is used.  For further customization you can
+    #: also subclass :class:`Flask` or use the signals to push and pop.
+    logbook_setup = None
 
     #: The logging format used for the debug logger.  This is only used when
     #: the application is in debug mode, otherwise the attached logging
@@ -195,10 +215,11 @@ class Flask(_PackageBoundObject):
         'USE_X_SENDFILE':                       False,
         'LOGGER_NAME':                          None,
         'SERVER_NAME':                          None,
-        'MAX_CONTENT_LENGTH':                   None
+        'MAX_CONTENT_LENGTH':                   None,
+        'LOGGING_SYSTEM':                       'logging'
     })
 
-    def __init__(self, import_name, static_path=None):
+    def __init__(self, import_name, static_path=None, use_logbook=None):
         _PackageBoundObject.__init__(self, import_name)
         if static_path is not None:
             self.static_path = static_path
@@ -210,7 +231,8 @@ class Flask(_PackageBoundObject):
 
         #: Prepare the deferred setup of the logger.
         self._logger = None
-        self.logger_name = self.import_name
+        if self.logger_name is None:
+            self.logger_name = self.import_name
 
         #: A dictionary of all view functions registered.  The keys will
         #: be function names which are also used to generate URLs and
@@ -313,6 +335,11 @@ class Flask(_PackageBoundObject):
             app.logger.debug('A value for debugging')
             app.logger.warning('A warning ocurred (%d apples)', 42)
             app.logger.error('An error occoured')
+
+        In case the `LOGGING_SYSTEM` is ``'logbook'`` it is strongly
+        recommended against using this logger and create your own.  Unlike
+        logging, logbook automatically will handle writing to the
+        :attr:`logbook_setup`.
 
         .. versionadded:: 0.3
         """

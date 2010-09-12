@@ -46,9 +46,13 @@ class _RequestContext(object):
     def push(self):
         """Binds the request context."""
         _request_ctx_stack.push(self)
+        if self.app.logbook_setup is not None:
+            self.app.logbook_setup.push_thread()
 
     def pop(self):
         """Pops the request context."""
+        if self.app.logbook_setup is not None:
+            self.app.logbook_setup.pop_thread()
         _request_ctx_stack.pop()
 
     def __enter__(self):

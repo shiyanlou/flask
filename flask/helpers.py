@@ -32,7 +32,6 @@ except ImportError:
         except ImportError:
             json_available = False
 
-
 from werkzeug import Headers, wrap_file, cached_property
 from werkzeug.exceptions import NotFound
 
