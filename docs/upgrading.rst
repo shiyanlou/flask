@@ -125,7 +125,7 @@ If you run your application in production and want to profit from
 automatic error logging, you might be interested in attaching a proper log
 handler.  Also you can start logging warnings and errors into the logger
 when appropriately.  For more information on that, read
-:ref:`application-errors`.
+:ref:`old-logging`.
 
 Categories for Flash Messages
 `````````````````````````````

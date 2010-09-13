@@ -1,9 +1,15 @@
-.. _application-errors:
+.. _old-logging:
 
-Handling Application Errors
-===========================
+Setting up the old Logging System
+=================================
 
 .. versionadded:: 0.3
+
+.. admonition:: Pending Deprecation
+
+   This document specifies soon to be deprecated functionality that will
+   be removed in Flask 1.0.  Please have a look at the new :ref:`logging`
+   documentation instead.
 
 Applications fail, servers fail.  Sooner or later you will see an exception
 in production.  Even if your code is 100% correct, you will still see

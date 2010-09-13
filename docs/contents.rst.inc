@@ -14,7 +14,7 @@ instructions for web development with Flask.
    tutorial/index
    templating
    testing
-   errorhandling
+   logging
    config
    signals
    shell
@@ -41,6 +41,7 @@ Design notes, legal information and changelog are here for the interested.
 .. toctree::
    :maxdepth: 2
 
+   attic/index
    design
    htmlfaq
    security
