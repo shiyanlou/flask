@@ -19,6 +19,32 @@
 from __future__ import absolute_import
 
 
+try:
+    import logbook
+except ImportError:
+    logbook = None
+else:
+    class DebugHandler(logbook.StderrHandler):
+        """A special logbook debug handler that handles everything when the
+        application debug flag is True, or nothing else.
+        """
+
+        default_format_string = (
+            '-' * 80 + '\n' +
+            '{record.level_name} in {record.module} '
+                '[{record.filename}:{record.lineno}]:\n' +
+            '{record.message}\n' +
+            '-' * 80
+        )
+
+        def __init__(self, app):
+            logbook.StderrHandler.__init__(self)
+            self.app = app
+
+        def should_handle(self, record):
+            return self.app.debug
+
+
 def create_logger(app):
     """Creates a new logger for the application.  This is mainly needed
     because Flask supports dynamic logger name changes.  Once we drop
@@ -35,27 +61,18 @@ def init_logging_system(app):
 
 def create_logbook_logger(app):
     """Initializes the logbook default config for the application."""
-    from logbook import Logger
-    return Logger(app.logger_name)
+    _assert_logbook()
+    return logbook.Logger(app.logger_name)
 
 
 def init_logbook(app):
     """Stuffs a default logging setup on the application object in case
     the attribute was not set so far.
     """
+    _assert_logbook()
     if app.logbook_setup is None:
-        from logbook import StderrHandler, NullHandler, NestedSetup
-        class DebugHandler(StderrHandler):
-            default_format_string = (
-                '-' * 80 + '\n' +
-                '{record.level_name} in {record.module} '
-                    '[{record.filename}:{record.lineno}]:\n' +
-                '{record.message}\n' +
-                '-' * 80
-            )
-            def should_handle(self, record):
-                return app.debug
-        app.logbook_setup = NestedSetup([NullHandler(), DebugHandler()])
+        app.logbook_setup = logbook.NestedSetup([logbook.NullHandler(),
+                                                 DebugHandler(app)])
 
 
 def create_logging_logger(app):
@@ -95,6 +112,13 @@ def create_logging_logger(app):
 def create_dummy_logger(app):
     """Creates a dummy logger."""
     return _DummyLogger(app.logger_name)
+
+
+def _assert_logbook():
+    """Ensures that logbook is available."""
+    if logbook is None:
+        raise RuntimeError('Logbook is not installed but it was requested '
+                           'as logging backend.')
 
 
 class _DummyLogger(object):
