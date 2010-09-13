@@ -1029,6 +1029,22 @@ class LoggingTestCase(unittest.TestCase):
             assert rv.status_code == 500
             assert rv.data == 'Hello Server Error'
 
+    def test_logbook_default_setup(self):
+        from logbook import Logger
+        app = flask.Flask(__name__, logging_system='logbook')
+        logger = Logger('My logger')
+        @app.route('/')
+        def index():
+            logger.warn('This is a warning')
+            return 'Testing'
+
+        with catch_stderr() as captured:
+            rv = app.test_client().get('/')
+            self.assertEqual(captured.getvalue(), '')
+            app.debug = True
+            rv = app.test_client().get('/')
+            self.assertNotEqual(captured.getvalue(), '')
+
 
 class ConfigTestCase(unittest.TestCase):
 

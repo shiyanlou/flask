@@ -44,14 +44,18 @@ def init_logbook(app):
     the attribute was not set so far.
     """
     if app.logbook_setup is None:
-        from logbook import StderrHandler
-        app.logbook_setup = StderrHandler(format_string=(
-            '-' * 80 + '\n' +
-            '{record.level_name} in {record.module} '
-                '[{record.filename}:{record.lineno}]:\n' +
-            '{record.message}\n' +
-            '-' * 80
-        ))
+        from logbook import StderrHandler, NullHandler, NestedSetup
+        class DebugHandler(StderrHandler):
+            default_format_string = (
+                '-' * 80 + '\n' +
+                '{record.level_name} in {record.module} '
+                    '[{record.filename}:{record.lineno}]:\n' +
+                '{record.message}\n' +
+                '-' * 80
+            )
+            def should_handle(self, record):
+                return app.debug
+        app.logbook_setup = NestedSetup([NullHandler(), DebugHandler()])
 
 
 def create_logging_logger(app):
