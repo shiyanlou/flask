@@ -17,6 +17,9 @@ Release date to be announced, codename to be selected
   deprecated for :func:`flask.send_file` because it was unreliable.
   Pass filenames instead or attach your own etags and provide a
   proper mimetype by hand.
+- Added support for Logbook and started the slow deprecation process
+  for logging.
+- Removed `flask.Flask.debug_log_format` attribute.
 
 Version 0.6.1
 -------------

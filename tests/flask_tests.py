@@ -950,8 +950,8 @@ class LoggingTestCase(unittest.TestCase):
         app.logger_name = __name__ + '/test_logger_cache'
         assert app.logger is not logger1
 
-    def test_debug_log(self):
-        app = flask.Flask(__name__)
+    def perform_debug_log_test(self, logging_system):
+        app = flask.Flask(__name__, logging_system=logging_system)
         app.debug = True
 
         @app.route('/')
@@ -980,6 +980,12 @@ class LoggingTestCase(unittest.TestCase):
                 pass
             else:
                 assert False, 'debug log ate the exception'
+
+    def test_logging_debug_log(self):
+        self.perform_debug_log_test('logging')
+
+    def test_logbook_debug_log(self):
+        self.perform_debug_log_test('logbook')
 
     def test_exception_logging(self):
         out = StringIO()

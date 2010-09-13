@@ -33,6 +33,7 @@ from .module import _ModuleSetupState
 from .templating import _DispatchingJinjaLoader, \
     _default_template_ctx_processor
 from .signals import request_started, request_finished, got_request_exception
+from .logging import init_logging_system, create_logger
 
 # a lock used for logger initialization
 _logger_lock = Lock()
@@ -171,15 +172,6 @@ class Flask(_PackageBoundObject):
     #: .. versionadded:: 0.4
     logger_name = ConfigAttribute('LOGGER_NAME')
 
-    #: the name of the logging system that is configured by default.  The
-    #: default is ``'logging'`` but it can be set to ``'logbook'`` as well.
-    #: The default will change to ``'logbook'`` at one point and later the
-    #: ``'logging'`` support will eventually disappear together with this
-    #: setting.  Check the :ref:`log-transition` for more information.
-    #:
-    #: .. versionadded:: 0.7
-    logging_system = ConfigAttribute('LOGGING_SYSTEM')
-
     #: the logbook setup that should be in use.  This is only used in case
     #: the `LOGGING_SYSTEM` is ``'logbook'``.  It can point to any
     #: :class:`logbook.Processor`, :class:`logbook.Handler` or
@@ -187,18 +179,6 @@ class Flask(_PackageBoundObject):
     #: application wide setup is used.  For further customization you can
     #: also subclass :class:`Flask` or use the signals to push and pop.
     logbook_setup = None
-
-    #: The logging format used for the debug logger.  This is only used when
-    #: the application is in debug mode, otherwise the attached logging
-    #: handler does the formatting.
-    #:
-    #: .. versionadded:: 0.3
-    debug_log_format = (
-        '-' * 80 + '\n' +
-        '%(levelname)s in %(module)s [%(pathname)s:%(lineno)d]:\n' +
-        '%(message)s\n' +
-        '-' * 80
-    )
 
     #: Options that are passed directly to the Jinja2 environment.
     jinja_options = ImmutableDict(
@@ -215,11 +195,10 @@ class Flask(_PackageBoundObject):
         'USE_X_SENDFILE':                       False,
         'LOGGER_NAME':                          None,
         'SERVER_NAME':                          None,
-        'MAX_CONTENT_LENGTH':                   None,
-        'LOGGING_SYSTEM':                       'logging'
+        'MAX_CONTENT_LENGTH':                   None
     })
 
-    def __init__(self, import_name, static_path=None, use_logbook=None):
+    def __init__(self, import_name, static_path=None, logging_system=None):
         _PackageBoundObject.__init__(self, import_name)
         if static_path is not None:
             self.static_path = static_path
@@ -325,6 +304,12 @@ class Flask(_PackageBoundObject):
         self.jinja_env = self.create_jinja_environment()
         self.init_jinja_globals()
 
+        # initialize logging
+        if logging_system is None:
+            logging_system = 'logging'
+        self.logging_system = logging_system
+        init_logging_system(self)
+
     @property
     def logger(self):
         """A :class:`logging.Logger` object for this application.  The
@@ -348,7 +333,6 @@ class Flask(_PackageBoundObject):
         with _logger_lock:
             if self._logger and self._logger.name == self.logger_name:
                 return self._logger
-            from flask.logging import create_logger
             self._logger = rv = create_logger(self)
             return rv
 
