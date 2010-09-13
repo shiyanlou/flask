@@ -173,7 +173,7 @@ class Flask(_PackageBoundObject):
     logger_name = ConfigAttribute('LOGGER_NAME')
 
     #: the logbook setup that should be in use.  This is only used in case
-    #: the `LOGGING_SYSTEM` is ``'logbook'``.  It can point to any
+    #: the logging system is ``'logbook'``.  It can point to any
     #: :class:`logbook.Processor`, :class:`logbook.Handler` or
     #: :class:`logbook.NestedSetup`.  In case it's `None`, the default
     #: application wide setup is used.  For further customization you can
@@ -321,7 +321,7 @@ class Flask(_PackageBoundObject):
             app.logger.warning('A warning ocurred (%d apples)', 42)
             app.logger.error('An error occoured')
 
-        In case the `LOGGING_SYSTEM` is ``'logbook'`` it is strongly
+        In case the logging system is ``'logbook'`` it is strongly
         recommended against using this logger and create your own.  Unlike
         logging, logbook automatically will handle writing to the
         :attr:`logbook_setup`.
