@@ -3,6 +3,14 @@ Flask Changelog
 
 Here you can see the full list of changes between each Flask release.
 
+Version 0.7.3
+-------------
+
+Bugfix release, release date to be decided
+
+- Fixed the Jinja2 environment's list_templates method not returning the
+  correct names when blueprints or modules were involved.
+
 Version 0.7.2
 -------------
 
